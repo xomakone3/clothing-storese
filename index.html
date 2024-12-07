@@ -27,7 +27,7 @@
 
         .logo-container {
             width: 100%;
-            padding: 20px 0;
+            padding: 0 0 20px 0;
             background-color: var(--darker-bg);
             display: flex;
             justify-content: center;
@@ -46,12 +46,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 16px;
             margin-bottom: 20px;
         }
 
         .search-container {
-            flex-grow: 1;
-            margin: 0 16px;
+            flex: 1;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
         }
 
         .search-input {
@@ -61,6 +64,34 @@
             border: none;
             background-color: var(--card-bg);
             color: var(--light-text);
+        }
+
+        .filter-button {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .filter-button:hover {
+            opacity: 0.9;
+        }
+
+        .filter-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='white' d='M487.976 0H24.028C2.71 0-8.047 25.866 7.058 40.971L192 225.941V432c0 7.831 3.821 15.17 10.237 19.662l80 55.98C298.02 518.69 320 507.493 320 487.98V225.941l184.947-184.97C520.021 25.896 509.338 0 487.976 0z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .sort-button {
@@ -233,6 +264,10 @@
             <input type="text" class="search-input" placeholder="Поиск товаров..." 
                    onkeyup="searchProducts(this.value)">
         </div>
+        <button class="filter-button">
+            <span class="filter-icon"></span>
+            Фильтры
+        </button>
         <button class="sort-button" onclick="toggleSort()">Сортировка</button>
         <div id="sortMenu" class="sort-menu">
             <button onclick="applySorting('price-asc')">Цена: по возрастанию</button>
