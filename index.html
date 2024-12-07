@@ -6,47 +6,167 @@
     <title>Магазин одежды</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --primary-color: #8E2DE2;
+            --gradient-start: #8E2DE2;
+            --gradient-end: #4A00E0;
+            --dark-bg: #1a1a1a;
+            --darker-bg: #141414;
+            --light-text: #ffffff;
+            --gray-text: #a0a0a0;
+            --card-bg: #2a2a2a;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
+            background-color: var(--dark-bg);
+            color: var(--light-text);
         }
+
         .logo-container {
             width: 100%;
             margin: 0;
             padding: 0;
-            background-color: #fff;
-            height: 200px; /* Фиксированная высота для логотипа */
+            background-color: var(--darker-bg);
+            height: 200px;
             overflow: hidden;
             position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
+
         .logo-image {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Это свойство обеспечит заполнение контейнера без искажений */
+            object-fit: cover;
             display: block;
         }
+
+        .search-container {
+            position: sticky;
+            top: 0;
+            background-color: var(--darker-bg);
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--card-bg);
+            color: var(--light-text);
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--gray-text);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .sort-button {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--light-text);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 48px;
+            transition: all 0.3s ease;
+        }
+
+        .sort-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(142, 45, 226, 0.4);
+        }
+
+        .sort-button:active {
+            transform: translateY(0);
+        }
+
+        .sort-icon {
+            width: 24px;
+            height: 24px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.9;
+        }
+
+        /* Стили для выпадающего меню сортировки */
+        .sort-menu {
+            position: absolute;
+            top: 100%;
+            right: 16px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 8px 0;
+            display: none;
+            min-width: 200px;
+        }
+
+        .sort-menu.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .sort-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--light-text);
+        }
+
+        .sort-option:hover {
+            background: rgba(142, 45, 226, 0.1);
+            color: var(--primary-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 16px;
         }
-        .store-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+
         .store-description {
             text-align: center;
             padding: 20px;
             font-size: 16px;
             line-height: 1.6;
-            color: var(--tg-theme-text-color, #000);
+            color: var(--light-text);
         }
+
         .contact-button {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--light-text);
             border: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -56,22 +176,38 @@
             margin: 20px auto;
             transition: opacity 0.2s;
         }
+
         .contact-button:hover {
             opacity: 0.9;
         }
     </style>
 </head>
 <body>
-    <!-- Логотип магазина на всю ширину -->
+    <!-- Логотип магазина -->
     <div class="logo-container">
         <img src="logo.jpg" alt="Логотип магазина" class="logo-image">
     </div>
 
+    <!-- Поисковая строка и кнопка сортировки -->
+    <div class="search-container">
+        <input type="text" 
+               class="search-input" 
+               placeholder="Поиск товаров..." 
+               onkeyup="searchProducts(this.value)">
+        <button class="sort-button" onclick="toggleSort()">
+            <div class="sort-icon"></div>
+        </button>
+    </div>
+
+    <!-- Выпадающее меню сортировки -->
+    <div class="sort-menu" id="sortMenu">
+        <div class="sort-option" onclick="applySorting('popular')">По популярности</div>
+        <div class="sort-option" onclick="applySorting('price-asc')">По возрастанию цены</div>
+        <div class="sort-option" onclick="applySorting('price-desc')">По убыванию цены</div>
+        <div class="sort-option" onclick="applySorting('new')">Сначала новые</div>
+    </div>
+
     <div class="container">
-        <div class="store-header">
-            <!-- Убрал заголовок, так как будет логотип -->
-        </div>
-        
         <div class="store-description">
             <p>Добро пожаловать в наш магазин одежды! Мы предлагаем широкий выбор стильной одежды по доступным ценам.</p>
             <p>Наш адрес: [Ваш адрес]</p>
@@ -84,6 +220,32 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.MainButton.hide();
+
+        function searchProducts(query) {
+            // Здесь будет логика поиска
+            console.log('Поиск:', query);
+        }
+
+        function toggleSort() {
+            const menu = document.getElementById('sortMenu');
+            menu.classList.toggle('active');
+        }
+
+        function applySorting(method) {
+            console.log('Применена сортировка:', method);
+            toggleSort(); // Закрываем меню
+        }
+
+        // Закрываем меню сортировки при клике вне его
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('sortMenu');
+            const sortButton = event.target.closest('.sort-button');
+            
+            if (!sortButton && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
 
         function contactUs() {
             // Здесь можно добавить действие при нажатии на кнопку
