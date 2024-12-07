@@ -1,232 +1,376 @@
-import os
-import logging
-from dotenv import load_dotenv
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин одежды</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --primary-color: #8E2DE2;
+            --gradient-start: #8E2DE2;
+            --gradient-end: #4A00E0;
+            --dark-bg: #1a1a1a;
+            --darker-bg: #141414;
+            --light-text: #ffffff;
+            --gray-text: #a0a0a0;
+            --card-bg: #2a2a2a;
+        }
 
-# Загрузка переменных окружения
-load_dotenv()
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+        }
 
-# Настройка логирования
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-# URL вашего веб-приложения (замените на реальный URL после деплоя)
-WEBAPP_URL = "https://xomakone3.github.io/clothing-storese/"
+        .search-container {
+            flex-grow: 1;
+            margin: 0 16px;
+        }
 
-# Каталог товаров
-PRODUCTS = {
-    'tshirts': {
-        'name': 'Футболки',
-        'items': [
-            {'name': 'Базовая белая футболка', 'price': '1500₽', 'description': 'Классическая белая футболка из 100% хлопка'},
-            {'name': 'Черная футболка с принтом', 'price': '2000₽', 'description': 'Стильная футболка с уникальным дизайном'},
-        ]
-    },
-    'jackets': {
-        'name': 'Куртки',
-        'items': [
-            {'name': 'Джинсовая куртка', 'price': '5000₽', 'description': 'Классическая джинсовая куртка синего цвета'},
-            {'name': 'Кожаная куртка', 'price': '15000₽', 'description': 'Стильная кожаная куртка черного цвета'},
-        ]
-    },
-    'pants': {
-        'name': 'Штаны',
-        'items': [
-            {'name': 'Джинсы классические', 'price': '3500₽', 'description': 'Синие джинсы прямого кроя'},
-            {'name': 'Спортивные штаны', 'price': '2500₽', 'description': 'Удобные штаны для спорта и отдыха'},
-        ]
-    }
-}
+        .search-input {
+            width: 100%;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background-color: var(--card-bg);
+            color: var(--light-text);
+        }
 
-def get_main_keyboard():
-    keyboard = [
-        [
-            InlineKeyboardButton("Футболки", callback_data="category_tshirts"),
-            InlineKeyboardButton("Куртки", callback_data="category_jackets"),
-            InlineKeyboardButton("Штаны", callback_data="category_pants"),
-        ],
-        [InlineKeyboardButton("О магазине", callback_data="about")],
-    ]
-    return InlineKeyboardMarkup(keyboard)
+        .sort-button {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+        }
 
-def get_category_keyboard(category):
-    keyboard = []
-    for i, item in enumerate(PRODUCTS[category]['items']):
-        keyboard.append([InlineKeyboardButton(item['name'], callback_data=f"item_{category}_{i}")])
-    keyboard.append([InlineKeyboardButton("← Назад", callback_data="main_menu")])
-    return InlineKeyboardMarkup(keyboard)
+        .sort-menu {
+            display: none;
+            position: absolute;
+            right: 16px;
+            top: 60px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
 
-def start(update: Update, context: CallbackContext):
-    keyboard = [[InlineKeyboardButton(
-        "Открыть магазин", 
-        web_app=WebAppInfo(url=WEBAPP_URL)
-    )]]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    update.message.reply_text(
-        'Добро пожаловать в наш магазин одежды! 👕\n'
-        'Нажмите кнопку ниже, чтобы открыть каталог:',
-        reply_markup=reply_markup
-    )
+        .sort-menu.active {
+            display: block;
+        }
 
-def help_command(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        'Доступные команды:\n'
-        '/start - Открыть магазин\n'
-        '/help - Показать это сообщение'
-    )
+        .sort-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            color: var(--light-text);
+            text-align: left;
+            cursor: pointer;
+        }
 
-def button_click(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
+        .sort-menu button:hover {
+            background-color: var(--darker-bg);
+        }
 
-    if query.data == "main_menu":
-        query.edit_message_text(
-            text="Выберите категорию товаров:",
-            reply_markup=get_main_keyboard()
-        )
-    elif query.data == "about":
-        query.edit_message_text(
-            text="Наш магазин одежды предлагает широкий выбор качественной одежды.\n"
-                 "Для заказа свяжитесь с нами: @your_contact\n\n"
-                 "← Вернуться в главное меню",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("← Назад", callback_data="main_menu")]])
-        )
-    elif query.data.startswith("category_"):
-        category = query.data.split("_")[1]
-        query.edit_message_text(
-            text=f"Категория: {PRODUCTS[category]['name']}\nВыберите товар:",
-            reply_markup=get_category_keyboard(category)
-        )
-    elif query.data.startswith("item_"):
-        _, category, item_index = query.data.split("_")
-        item = PRODUCTS[category]['items'][int(item_index)]
-        query.edit_message_text(
-            text=f"🏷 {item['name']}\n"
-                 f"💰 Цена: {item['price']}\n"
-                 f"📝 {item['description']}\n\n"
-                 "Для заказа свяжитесь с нами: @your_contact",
-            reply_markup=get_category_keyboard(category)
-        )
+        .products-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
+        }
 
-def web_app_data(update: Update, context: CallbackContext):
-    """Обработка данных от веб-приложения"""
-    data = update.effective_message.web_app_data.data
-    try:
-        # Обработка данных от веб-приложения (например, покупки)
-        update.message.reply_text(
-            f"Спасибо за заказ!\n"
-            f"Мы свяжемся с вами для подтверждения.\n"
-            f"Данные заказа: {data}"
-        )
-    except Exception as e:
-        update.message.reply_text("Произошла ошибка при обработке заказа.")
-        logging.error(f"Error processing web app data: {e}")
+        .product-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
 
-def add_product(update: Update, context: CallbackContext):
-    if update.effective_user.id != int(os.getenv('ADMIN_ID', '0')):
-        update.message.reply_text("У вас нет прав администратора.")
-        return
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
 
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Введите название товара:"
-    )
+        .image-container {
+            position: relative;
+            padding-top: 100%;
+            overflow: hidden;
+        }
 
-def handle_product_input(update: Update, context: CallbackContext):
-    user_id = update.effective_user.id
-    if user_id != int(os.getenv('ADMIN_ID', '0')):
-        return
+        .product-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
 
-    message_text = update.message.text
+        .product-image.active {
+            display: block;
+        }
 
-    if not hasattr(context, 'product_data'):
-        context.product_data = {}
+        .image-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
 
-    if 'title' not in context.product_data:
-        context.product_data['title'] = message_text
-        update.message.reply_text("Введите описание товара:")
-    elif 'description' not in context.product_data:
-        context.product_data['description'] = message_text
-        update.message.reply_text("Введите цену товара (только число):")
-    elif 'price' not in context.product_data:
-        try:
-            price = float(message_text)
-            context.product_data['price'] = price
-            update.message.reply_text("Отправьте фотографии товара (по одной). После отправки всех фотографий напишите 'готово'")
-        except ValueError:
-            update.message.reply_text("Пожалуйста, введите корректную цену (только число):")
-    elif 'images' not in context.product_data:
-        if message_text.lower() == 'готово':
-            if 'images' not in context.product_data:
-                update.message.reply_text("Вы не отправили ни одной фотографии. Отправьте хотя бы одну:")
-                return
+        .image-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-            # Сохраняем товар
-            product = context.product_data
-            product['id'] = str(len(PRODUCTS['tshirts']['items']) + 1)
+        .image-dot.active {
+            background: white;
+        }
+
+        .product-info {
+            padding: 16px;
+        }
+
+        .product-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .product-info .description {
+            color: var(--gray-text);
+            font-size: 14px;
+            margin: 0 0 12px 0;
+        }
+
+        .product-info .size {
+            color: var(--gray-text);
+            font-size: 14px;
+            margin: 0 0 8px 0;
+        }
+
+        .product-info .price {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 16px 0;
+            color: var(--primary-color);
+        }
+
+        .product-info button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .product-info button:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .search-container {
+                margin: 12px 0;
+                width: 100%;
+            }
+
+            .sort-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Поиск товаров..." 
+                   onkeyup="searchProducts(this.value)">
+        </div>
+        <button class="sort-button" onclick="toggleSort()">Сортировка</button>
+        <div id="sortMenu" class="sort-menu">
+            <button onclick="applySorting('price-asc')">Цена: по возрастанию</button>
+            <button onclick="applySorting('price-desc')">Цена: по убыванию</button>
+            <button onclick="applySorting('name-asc')">Название: А-Я</button>
+            <button onclick="applySorting('name-desc')">Название: Я-А</button>
+        </div>
+    </div>
+
+    <div class="products-container"></div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        let products = [];
+        let currentSort = 'default';
+
+        // Инициализация Telegram WebApp
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // Загрузка товаров
+        async function loadProducts() {
+            try {
+                const response = await fetch('products.json');
+                const data = await response.json();
+                products = data.products || [];
+                displayProducts(products);
+            } catch (error) {
+                console.error('Ошибка при загрузке товаров:', error);
+            }
+        }
+
+        // Отображение товаров
+        function displayProducts(productsToShow) {
+            const container = document.querySelector('.products-container');
+            container.innerHTML = '';
+
+            productsToShow.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.dataset.id = product.id;
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'image-container';
+
+                // Добавляем все изображения товара
+                product.images.forEach((image, index) => {
+                    const img = document.createElement('img');
+                    img.src = `images/${image}`;
+                    img.alt = product.title;
+                    img.className = index === 0 ? 'product-image active' : 'product-image';
+                    img.dataset.index = index;
+                    imageContainer.appendChild(img);
+                });
+
+                // Добавляем точки для навигации по изображениям
+                if (product.images.length > 1) {
+                    const dotsContainer = document.createElement('div');
+                    dotsContainer.className = 'image-dots';
+                    product.images.forEach((_, index) => {
+                        const dot = document.createElement('span');
+                        dot.className = index === 0 ? 'image-dot active' : 'image-dot';
+                        dot.onclick = () => showImage(product.id, index);
+                        dotsContainer.appendChild(dot);
+                    });
+                    imageContainer.appendChild(dotsContainer);
+                }
+
+                const info = document.createElement('div');
+                info.className = 'product-info';
+                info.innerHTML = `
+                    <h3>${product.title}</h3>
+                    <p class="description">${product.description}</p>
+                    <p class="size">Размер: ${product.size}</p>
+                    <p class="price">${product.price}₽</p>
+                    <button onclick="addToCart('${product.id}')">В корзину</button>
+                `;
+
+                card.appendChild(imageContainer);
+                card.appendChild(info);
+                container.appendChild(card);
+            });
+        }
+
+        // Переключение изображений
+        function showImage(productId, imageIndex) {
+            const card = document.querySelector(`.product-card[data-id="${productId}"]`);
+            const images = card.querySelectorAll('.product-image');
+            const dots = card.querySelectorAll('.image-dot');
+
+            images.forEach(img => img.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+
+            images[imageIndex].classList.add('active');
+            dots[imageIndex].classList.add('active');
+        }
+
+        // Поиск товаров
+        function searchProducts(query) {
+            const filtered = products.filter(product => 
+                product.title.toLowerCase().includes(query.toLowerCase()) ||
+                product.description.toLowerCase().includes(query.toLowerCase())
+            );
+            displayProducts(filtered);
+        }
+
+        // Переключение меню сортировки
+        function toggleSort() {
+            const menu = document.getElementById('sortMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Применение сортировки
+        function applySorting(method) {
+            currentSort = method;
+            let sorted = [...products];
+
+            switch (method) {
+                case 'price-asc':
+                    sorted.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    sorted.sort((a, b) => b.price - a.price);
+                    break;
+                case 'name-asc':
+                    sorted.sort((a, b) => a.title.localeCompare(b.title));
+                    break;
+                case 'name-desc':
+                    sorted.sort((a, b) => b.title.localeCompare(a.title));
+                    break;
+            }
+
+            displayProducts(sorted);
+            toggleSort();
+        }
+
+        // Добавление в корзину
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                tg.sendData(JSON.stringify({
+                    action: 'add_to_cart',
+                    product: product
+                }));
+            }
+        }
+
+        // Закрытие меню сортировки при клике вне его
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('sortMenu');
+            const sortButton = event.target.closest('.sort-button');
             
-            PRODUCTS['tshirts']['items'].append(product)
-            update.message.reply_text("Товар успешно добавлен!")
+            if (!sortButton && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+            }
+        });
 
-            del context.product_data
-        else:
-            update.message.reply_text("Напишите 'готово', чтобы закончить добавление товара.")
-
-def handle_photo(update: Update, context: CallbackContext):
-    user_id = update.effective_user.id
-    if user_id != int(os.getenv('ADMIN_ID', '0')):
-        return
-
-    photo = update.message.photo[-1]  # Берем самое большое разрешение
-    file = photo.get_file()
-    
-    # Создаем директорию для изображений, если её нет
-    os.makedirs("webapp/images", exist_ok=True)
-    
-    # Генерируем уникальное имя файла
-    photo_id = f"product_{len(PRODUCTS['tshirts']['items']) + 1}_{len(context.product_data.get('images', []))}.jpg"
-    file_path = f"webapp/images/{photo_id}"
-    
-    # Скачиваем файл
-    file.download(file_path)
-    
-    # Добавляем путь к файлу в данные о товаре
-    if 'images' not in context.product_data:
-        context.product_data['images'] = []
-    context.product_data['images'].append(photo_id)
-    
-    update.message.reply_text(
-        f"Фото добавлено! Отправьте следующее или напишите 'готово', если это последнее фото."
-    )
-
-def main():
-    # Создаем экземпляр бота
-    updater = Updater(token=os.getenv('BOT_TOKEN'))
-    
-    # Получаем диспетчер
-    dp = updater.dispatcher
-
-    # Добавляем обработчики
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CommandHandler("add_product", add_product))
-    dp.add_handler(CallbackQueryHandler(button_click))
-    
-    # Обработчик данных от веб-приложения
-    dp.add_handler(MessageHandler(Filters.web_app_data, web_app_data))
-
-    # Обработчики сообщений
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_product_input))
-    dp.add_handler(MessageHandler(Filters.photo, handle_photo))
-
-    # Запускаем бота
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == '__main__':
-    main()
+        // Загружаем товары при загрузке страницы
+        loadProducts();
+    </script>
+</body>
+</html>
