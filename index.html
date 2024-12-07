@@ -27,12 +27,12 @@
 
         .logo-container {
             width: 100%;
-            padding: 0 0 20px 0;
+            padding: 0;
             background-color: var(--darker-bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         .logo-image {
@@ -46,12 +46,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 16px;
-            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: var(--darker-bg);
         }
 
         .search-container {
-            flex: 1;
+            flex: 0.7;
             margin-right: 16px;
             display: flex;
             align-items: center;
@@ -59,48 +59,42 @@
 
         .search-input {
             width: 100%;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 12px 16px;
             border: none;
+            border-radius: 8px;
             background-color: var(--card-bg);
             color: var(--light-text);
+            font-size: 16px;
         }
 
-        .filter-button {
+        .filter-button, .sort-button {
             background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: opacity 0.2s;
+            margin-left: 8px;
+            height: 36px;
         }
 
-        .filter-button:hover {
+        .filter-button:hover, .sort-button:hover {
             opacity: 0.9;
         }
 
         .filter-icon {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='white' d='M487.976 0H24.028C2.71 0-8.047 25.866 7.058 40.971L192 225.941V432c0 7.831 3.821 15.17 10.237 19.662l80 55.98C298.02 518.69 320 507.493 320 487.98V225.941l184.947-184.97C520.021 25.896 509.338 0 487.976 0z'/%3E%3C/svg%3E");
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-        }
-
-        .sort-button {
-            background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
         }
 
         .sort-menu {
