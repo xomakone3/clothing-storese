@@ -1,0 +1,24 @@
+{
+    "products": [
+        {
+            "id": "1",
+            "name": "Базовая футболка",
+            "description": "Мягкая хлопковая футболка базового кроя",
+            "price": 1299,
+            "category": "футболки",
+            "sizes": ["XS", "S", "M", "L", "XL"],
+            "colors": ["белый", "черный", "серый"],
+            "image": "https://example.com/tshirt.jpg"
+        },
+        {
+            "id": "2", 
+            "name": "Джинсы слим",
+            "description": "Зауженные джинсы из плотного денима",
+            "price": 3499,
+            "category": "джинсы",
+            "sizes": ["28", "30", "32", "34", "36"],
+            "colors": ["синий", "черный"],
+            "image": "https://example.com/jeans.jpg"
+        }
+    ]
+}
