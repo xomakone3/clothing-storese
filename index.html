@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин одежды</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .category-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+        .category-btn:hover {
+            opacity: 0.8;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            border: 1px solid var(--tg-theme-hint-color, #999);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .product-price {
+            font-size: 16px;
+            color: var(--tg-theme-hint-color, #999);
+            margin-bottom: 8px;
+        }
+        .product-description {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .buy-btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .back-btn {
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="categories" class="categories">
+            <!-- Категории будут добавлены через JavaScript -->
+        </div>
+        <div id="products" class="products" style="display: none;">
+            <!-- Товары будут добавлены через JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const PRODUCTS = {
+            'tshirts': {
+                'name': 'Футболки',
+                'items': [
+                    {'name': 'Базовая белая футболка', 'price': '1500₽', 'description': 'Классическая белая футболка из 100% хлопка'},
+                    {'name': 'Черная футболка с принтом', 'price': '2000₽', 'description': 'Стильная футболка с уникальным дизайном'},
+                ]
+            },
+            'jackets': {
+                'name': 'Куртки',
+                'items': [
+                    {'name': 'Джинсовая куртка', 'price': '5000₽', 'description': 'Классическая джинсовая куртка синего цвета'},
+                    {'name': 'Кожаная куртка', 'price': '15000₽', 'description': 'Стильная кожаная куртка черного цвета'},
+                ]
+            },
+            'pants': {
+                'name': 'Штаны',
+                'items': [
+                    {'name': 'Джинсы классические', 'price': '3500₽', 'description': 'Синие джинсы прямого кроя'},
+                    {'name': 'Спортивные штаны', 'price': '2500₽', 'description': 'Удобные штаны для спорта и отдыха'},
+                ]
+            }
+        };
+
+        function showCategories() {
+            const categoriesDiv = document.getElementById('categories');
+            const productsDiv = document.getElementById('products');
+            
+            categoriesDiv.style.display = 'grid';
+            productsDiv.style.display = 'none';
+            categoriesDiv.innerHTML = '';
+
+            for (let category in PRODUCTS) {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.textContent = PRODUCTS[category].name;
+                button.onclick = () => showProducts(category);
+                categoriesDiv.appendChild(button);
+            }
+        }
+
+        function showProducts(category) {
+            const categoriesDiv = document.getElementById('categories');
+            const productsDiv = document.getElementById('products');
+            
+            categoriesDiv.style.display = 'none';
+            productsDiv.style.display = 'grid';
+            productsDiv.innerHTML = '';
+
+            // Кнопка "Назад"
+            const backButton = document.createElement('button');
+            backButton.className = 'category-btn back-btn';
+            backButton.textContent = '← Назад';
+            backButton.onclick = showCategories;
+            productsDiv.appendChild(backButton);
+
+            // Показываем товары выбранной категории
+            PRODUCTS[category].items.forEach(item => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                
+                productCard.innerHTML = `
+                    <div class="product-name">${item.name}</div>
+                    <div class="product-price">${item.price}</div>
+                    <div class="product-description">${item.description}</div>
+                    <button class="buy-btn" onclick="buyProduct('${item.name}', '${item.price}')">Купить</button>
+                `;
+                
+                productsDiv.appendChild(productCard);
+            });
+        }
+
+        function buyProduct(name, price) {
+            tg.sendData(JSON.stringify({
+                action: 'buy',
+                product: name,
+                price: price
+            }));
+        }
+
+        // Инициализация при загрузке
+        showCategories();
+    </script>
+</body>
+</html>
