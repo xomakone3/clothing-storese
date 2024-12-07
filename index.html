@@ -10,11 +10,12 @@
             --primary-color: #8E2DE2;
             --gradient-start: #8E2DE2;
             --gradient-end: #4A00E0;
-            --dark-bg: #1a1a1a;
-            --darker-bg: #141414;
+            --dark-bg: #121212;
+            --darker-bg: #0a0a0a;
             --light-text: #ffffff;
             --gray-text: #a0a0a0;
-            --card-bg: #2a2a2a;
+            --card-bg: #1e1e1e;
+            --search-bg: #2d2d2d;
         }
 
         body {
@@ -23,6 +24,7 @@
             padding: 0;
             background-color: var(--dark-bg);
             color: var(--light-text);
+            min-height: 100vh;
         }
 
         .logo-container {
@@ -33,6 +35,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 0;
+            border-bottom: 1px solid #2a2a2a;
         }
 
         .logo-image {
@@ -44,27 +47,36 @@
 
         .header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             padding: 12px 16px;
             background-color: var(--darker-bg);
+            gap: 12px;
         }
 
         .search-container {
-            flex: 0.7;
-            margin-right: 16px;
+            width: 50%;
+            max-width: 400px;
             display: flex;
             align-items: center;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            background-color: var(--card-bg);
+            border-radius: 25px;
+            background-color: var(--search-bg);
             color: var(--light-text);
-            font-size: 16px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 2px 8px rgba(142, 45, 226, 0.4);
+            background-color: var(--card-bg);
         }
 
         .filter-button, .sort-button {
@@ -72,25 +84,26 @@
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 6px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: opacity 0.2s;
-            margin-left: 8px;
-            height: 36px;
+            transition: all 0.3s ease;
+            height: 35px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .filter-button:hover, .sort-button:hover {
-            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(142, 45, 226, 0.3);
         }
 
         .filter-icon {
             display: inline-block;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='white' d='M487.976 0H24.028C2.71 0-8.047 25.866 7.058 40.971L192 225.941V432c0 7.831 3.821 15.17 10.237 19.662l80 55.98C298.02 518.69 320 507.493 320 487.98V225.941l184.947-184.97C520.021 25.896 509.338 0 487.976 0z'/%3E%3C/svg%3E");
             background-size: contain;
             background-repeat: no-repeat;
@@ -128,10 +141,11 @@
         }
 
         .products-container {
+            padding: 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
-            padding: 10px 0;
+            background-color: var(--dark-bg);
         }
 
         .product-card {
