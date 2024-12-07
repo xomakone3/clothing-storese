@@ -24,7 +24,6 @@
             padding: 0;
             background-color: var(--dark-bg);
             color: var(--light-text);
-            min-height: 100vh;
         }
 
         .logo-container {
@@ -34,8 +33,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 0;
-            border-bottom: 1px solid #2a2a2a;
         }
 
         .logo-image {
@@ -46,37 +43,40 @@
         }
 
         .header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 12px 16px;
+            width: 100%;
+            padding: 12px 0;
             background-color: var(--darker-bg);
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
             gap: 12px;
+            padding: 0 16px;
         }
 
         .search-container {
-            width: 50%;
-            max-width: 400px;
-            display: flex;
-            align-items: center;
+            width: 300px;
+            margin-right: auto;
         }
 
         .search-input {
             width: 100%;
-            padding: 10px 20px;
+            padding: 8px 20px;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             background-color: var(--search-bg);
             color: var(--light-text);
-            font-size: 15px;
-            transition: all 0.3s ease;
+            font-size: 14px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .search-input:focus {
             outline: none;
             box-shadow: 0 2px 8px rgba(142, 45, 226, 0.4);
-            background-color: var(--card-bg);
         }
 
         .filter-button, .sort-button {
@@ -86,18 +86,16 @@
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.3s ease;
-            height: 35px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            height: 32px;
+            transition: all 0.2s ease;
         }
 
         .filter-button:hover, .sort-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(142, 45, 226, 0.3);
+            opacity: 0.9;
         }
 
         .filter-icon {
@@ -246,7 +244,7 @@
         }
 
         @media (max-width: 600px) {
-            .header {
+            .header-content {
                 flex-direction: column;
                 gap: 12px;
             }
@@ -268,21 +266,25 @@
     </div>
 
     <div class="header">
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="Поиск товаров..." 
-                   onkeyup="searchProducts(this.value)">
+        <div class="header-content">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Поиск товаров..." onkeyup="searchProducts(this.value)">
+            </div>
+            <button class="filter-button">
+                <span class="filter-icon"></span>
+                Фильтры
+            </button>
+            <button class="sort-button" onclick="toggleSort()">
+                Сортировка
+            </button>
         </div>
-        <button class="filter-button">
-            <span class="filter-icon"></span>
-            Фильтры
-        </button>
-        <button class="sort-button" onclick="toggleSort()">Сортировка</button>
-        <div id="sortMenu" class="sort-menu">
-            <button onclick="applySorting('price-asc')">Цена: по возрастанию</button>
-            <button onclick="applySorting('price-desc')">Цена: по убыванию</button>
-            <button onclick="applySorting('name-asc')">Название: А-Я</button>
-            <button onclick="applySorting('name-desc')">Название: Я-А</button>
-        </div>
+    </div>
+
+    <div id="sortMenu" class="sort-menu">
+        <button onclick="applySorting('price-asc')">Цена: по возрастанию</button>
+        <button onclick="applySorting('price-desc')">Цена: по убыванию</button>
+        <button onclick="applySorting('name-asc')">Название: А-Я</button>
+        <button onclick="applySorting('name-desc')">Название: Я-А</button>
     </div>
 
     <div class="products-container"></div>
