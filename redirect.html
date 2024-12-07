@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин одежды</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .loader {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <h2>Загрузка магазина...</h2>
+        <p>Пожалуйста, подождите</p>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            
+            // Перенаправление на основную страницу
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
