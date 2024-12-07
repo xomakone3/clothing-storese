@@ -1,259 +1,232 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин одежды</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --primary-color: #8E2DE2;
-            --gradient-start: #8E2DE2;
-            --gradient-end: #4A00E0;
-            --dark-bg: #1a1a1a;
-            --darker-bg: #141414;
-            --light-text: #ffffff;
-            --gray-text: #a0a0a0;
-            --card-bg: #2a2a2a;
-        }
+import os
+import logging
+from dotenv import load_dotenv
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--dark-bg);
-            color: var(--light-text);
-        }
+# Загрузка переменных окружения
+load_dotenv()
 
-        .logo-container {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            background-color: var(--darker-bg);
-            height: 200px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+# Настройка логирования
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-        .logo-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+# URL вашего веб-приложения (замените на реальный URL после деплоя)
+WEBAPP_URL = "https://xomakone3.github.io/clothing-storese/"
 
-        .search-container {
-            position: sticky;
-            top: 0;
-            background-color: var(--darker-bg);
-            padding: 12px 16px;
-            display: flex;
-            gap: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
+# Каталог товаров
+PRODUCTS = {
+    'tshirts': {
+        'name': 'Футболки',
+        'items': [
+            {'name': 'Базовая белая футболка', 'price': '1500₽', 'description': 'Классическая белая футболка из 100% хлопка'},
+            {'name': 'Черная футболка с принтом', 'price': '2000₽', 'description': 'Стильная футболка с уникальным дизайном'},
+        ]
+    },
+    'jackets': {
+        'name': 'Куртки',
+        'items': [
+            {'name': 'Джинсовая куртка', 'price': '5000₽', 'description': 'Классическая джинсовая куртка синего цвета'},
+            {'name': 'Кожаная куртка', 'price': '15000₽', 'description': 'Стильная кожаная куртка черного цвета'},
+        ]
+    },
+    'pants': {
+        'name': 'Штаны',
+        'items': [
+            {'name': 'Джинсы классические', 'price': '3500₽', 'description': 'Синие джинсы прямого кроя'},
+            {'name': 'Спортивные штаны', 'price': '2500₽', 'description': 'Удобные штаны для спорта и отдыха'},
+        ]
+    }
+}
 
-        .search-input {
-            flex-grow: 1;
-            padding: 12px 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            background: var(--card-bg);
-            color: var(--light-text);
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-        }
+def get_main_keyboard():
+    keyboard = [
+        [
+            InlineKeyboardButton("Футболки", callback_data="category_tshirts"),
+            InlineKeyboardButton("Куртки", callback_data="category_jackets"),
+            InlineKeyboardButton("Штаны", callback_data="category_pants"),
+        ],
+        [InlineKeyboardButton("О магазине", callback_data="about")],
+    ]
+    return InlineKeyboardMarkup(keyboard)
 
-        .search-input::placeholder {
-            color: var(--gray-text);
-        }
+def get_category_keyboard(category):
+    keyboard = []
+    for i, item in enumerate(PRODUCTS[category]['items']):
+        keyboard.append([InlineKeyboardButton(item['name'], callback_data=f"item_{category}_{i}")])
+    keyboard.append([InlineKeyboardButton("← Назад", callback_data="main_menu")])
+    return InlineKeyboardMarkup(keyboard)
 
-        .search-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--primary-color);
-        }
+def start(update: Update, context: CallbackContext):
+    keyboard = [[InlineKeyboardButton(
+        "Открыть магазин", 
+        web_app=WebAppInfo(url=WEBAPP_URL)
+    )]]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    update.message.reply_text(
+        'Добро пожаловать в наш магазин одежды! 👕\n'
+        'Нажмите кнопку ниже, чтобы открыть каталог:',
+        reply_markup=reply_markup
+    )
 
-        .sort-button {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: var(--light-text);
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 48px;
-            transition: all 0.3s ease;
-        }
+def help_command(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        'Доступные команды:\n'
+        '/start - Открыть магазин\n'
+        '/help - Показать это сообщение'
+    )
 
-        .sort-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(142, 45, 226, 0.4);
-        }
+def button_click(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
 
-        .sort-button:active {
-            transform: translateY(0);
-        }
+    if query.data == "main_menu":
+        query.edit_message_text(
+            text="Выберите категорию товаров:",
+            reply_markup=get_main_keyboard()
+        )
+    elif query.data == "about":
+        query.edit_message_text(
+            text="Наш магазин одежды предлагает широкий выбор качественной одежды.\n"
+                 "Для заказа свяжитесь с нами: @your_contact\n\n"
+                 "← Вернуться в главное меню",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("← Назад", callback_data="main_menu")]])
+        )
+    elif query.data.startswith("category_"):
+        category = query.data.split("_")[1]
+        query.edit_message_text(
+            text=f"Категория: {PRODUCTS[category]['name']}\nВыберите товар:",
+            reply_markup=get_category_keyboard(category)
+        )
+    elif query.data.startswith("item_"):
+        _, category, item_index = query.data.split("_")
+        item = PRODUCTS[category]['items'][int(item_index)]
+        query.edit_message_text(
+            text=f"🏷 {item['name']}\n"
+                 f"💰 Цена: {item['price']}\n"
+                 f"📝 {item['description']}\n\n"
+                 "Для заказа свяжитесь с нами: @your_contact",
+            reply_markup=get_category_keyboard(category)
+        )
 
-        .sort-icon {
-            width: 24px;
-            height: 24px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z'/%3E%3C/svg%3E");
-            background-size: contain;
-            background-repeat: no-repeat;
-            opacity: 0.9;
-        }
+def web_app_data(update: Update, context: CallbackContext):
+    """Обработка данных от веб-приложения"""
+    data = update.effective_message.web_app_data.data
+    try:
+        # Обработка данных от веб-приложения (например, покупки)
+        update.message.reply_text(
+            f"Спасибо за заказ!\n"
+            f"Мы свяжемся с вами для подтверждения.\n"
+            f"Данные заказа: {data}"
+        )
+    except Exception as e:
+        update.message.reply_text("Произошла ошибка при обработке заказа.")
+        logging.error(f"Error processing web app data: {e}")
 
-        /* Стили для выпадающего меню сортировки */
-        .sort-menu {
-            position: absolute;
-            top: 100%;
-            right: 16px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            padding: 8px 0;
-            display: none;
-            min-width: 200px;
-        }
+def add_product(update: Update, context: CallbackContext):
+    if update.effective_user.id != int(os.getenv('ADMIN_ID', '0')):
+        update.message.reply_text("У вас нет прав администратора.")
+        return
 
-        .sort-menu.active {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Введите название товара:"
+    )
 
-        .sort-option {
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: var(--light-text);
-        }
+def handle_product_input(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    if user_id != int(os.getenv('ADMIN_ID', '0')):
+        return
 
-        .sort-option:hover {
-            background: rgba(142, 45, 226, 0.1);
-            color: var(--primary-color);
-        }
+    message_text = update.message.text
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    if not hasattr(context, 'product_data'):
+        context.product_data = {}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+    if 'title' not in context.product_data:
+        context.product_data['title'] = message_text
+        update.message.reply_text("Введите описание товара:")
+    elif 'description' not in context.product_data:
+        context.product_data['description'] = message_text
+        update.message.reply_text("Введите цену товара (только число):")
+    elif 'price' not in context.product_data:
+        try:
+            price = float(message_text)
+            context.product_data['price'] = price
+            update.message.reply_text("Отправьте фотографии товара (по одной). После отправки всех фотографий напишите 'готово'")
+        except ValueError:
+            update.message.reply_text("Пожалуйста, введите корректную цену (только число):")
+    elif 'images' not in context.product_data:
+        if message_text.lower() == 'готово':
+            if 'images' not in context.product_data:
+                update.message.reply_text("Вы не отправили ни одной фотографии. Отправьте хотя бы одну:")
+                return
 
-        .store-description {
-            text-align: center;
-            padding: 20px;
-            font-size: 16px;
-            line-height: 1.6;
-            color: var(--light-text);
-        }
-
-        .contact-button {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: var(--light-text);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-            transition: opacity 0.2s;
-        }
-
-        .contact-button:hover {
-            opacity: 0.9;
-        }
-    </style>
-</head>
-<body>
-    <!-- Логотип магазина -->
-    <div class="logo-container">
-        <img src="logo.jpg" alt="Логотип магазина" class="logo-image">
-    </div>
-
-    <!-- Поисковая строка и кнопка сортировки -->
-    <div class="search-container">
-        <input type="text" 
-               class="search-input" 
-               placeholder="Поиск товаров..." 
-               onkeyup="searchProducts(this.value)">
-        <button class="sort-button" onclick="toggleSort()">
-            <div class="sort-icon"></div>
-        </button>
-    </div>
-
-    <!-- Выпадающее меню сортировки -->
-    <div class="sort-menu" id="sortMenu">
-        <div class="sort-option" onclick="applySorting('popular')">По популярности</div>
-        <div class="sort-option" onclick="applySorting('price-asc')">По возрастанию цены</div>
-        <div class="sort-option" onclick="applySorting('price-desc')">По убыванию цены</div>
-        <div class="sort-option" onclick="applySorting('new')">Сначала новые</div>
-    </div>
-
-    <div class="container">
-        <div class="store-description">
-            <p>Добро пожаловать в наш магазин одежды! Мы предлагаем широкий выбор стильной одежды по доступным ценам.</p>
-            <p>Наш адрес: [Ваш адрес]</p>
-            <p>Время работы: [Время работы]</p>
-        </div>
-
-        <button class="contact-button" onclick="contactUs()">Связаться с нами</button>
-    </div>
-
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.MainButton.hide();
-
-        function searchProducts(query) {
-            // Здесь будет логика поиска
-            console.log('Поиск:', query);
-        }
-
-        function toggleSort() {
-            const menu = document.getElementById('sortMenu');
-            menu.classList.toggle('active');
-        }
-
-        function applySorting(method) {
-            console.log('Применена сортировка:', method);
-            toggleSort(); // Закрываем меню
-        }
-
-        // Закрываем меню сортировки при клике вне его
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('sortMenu');
-            const sortButton = event.target.closest('.sort-button');
+            # Сохраняем товар
+            product = context.product_data
+            product['id'] = str(len(PRODUCTS['tshirts']['items']) + 1)
             
-            if (!sortButton && menu.classList.contains('active')) {
-                menu.classList.remove('active');
-            }
-        });
+            PRODUCTS['tshirts']['items'].append(product)
+            update.message.reply_text("Товар успешно добавлен!")
 
-        function contactUs() {
-            // Здесь можно добавить действие при нажатии на кнопку
-            tg.sendData(JSON.stringify({
-                action: 'contact',
-                message: 'Клиент хочет связаться'
-            }));
-        }
-    </script>
-</body>
-</html>
+            del context.product_data
+        else:
+            update.message.reply_text("Напишите 'готово', чтобы закончить добавление товара.")
+
+def handle_photo(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    if user_id != int(os.getenv('ADMIN_ID', '0')):
+        return
+
+    photo = update.message.photo[-1]  # Берем самое большое разрешение
+    file = photo.get_file()
+    
+    # Создаем директорию для изображений, если её нет
+    os.makedirs("webapp/images", exist_ok=True)
+    
+    # Генерируем уникальное имя файла
+    photo_id = f"product_{len(PRODUCTS['tshirts']['items']) + 1}_{len(context.product_data.get('images', []))}.jpg"
+    file_path = f"webapp/images/{photo_id}"
+    
+    # Скачиваем файл
+    file.download(file_path)
+    
+    # Добавляем путь к файлу в данные о товаре
+    if 'images' not in context.product_data:
+        context.product_data['images'] = []
+    context.product_data['images'].append(photo_id)
+    
+    update.message.reply_text(
+        f"Фото добавлено! Отправьте следующее или напишите 'готово', если это последнее фото."
+    )
+
+def main():
+    # Создаем экземпляр бота
+    updater = Updater(token=os.getenv('BOT_TOKEN'))
+    
+    # Получаем диспетчер
+    dp = updater.dispatcher
+
+    # Добавляем обработчики
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("add_product", add_product))
+    dp.add_handler(CallbackQueryHandler(button_click))
+    
+    # Обработчик данных от веб-приложения
+    dp.add_handler(MessageHandler(Filters.web_app_data, web_app_data))
+
+    # Обработчики сообщений
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_product_input))
+    dp.add_handler(MessageHandler(Filters.photo, handle_photo))
+
+    # Запускаем бота
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
